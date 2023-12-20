@@ -61,10 +61,19 @@ export function ZQuery(schema: ZodSchema): MethodDecorator {
         descriptor: PropertyDescriptor,
     ) {
         UsePipes(ZodValidationPipe.query(schema))(target, propertyKey, descriptor);
-        ApiQuery({
-            // @ts-expect-error should be fine
-            schema: generateSchema(schema),
-        })(target, propertyKey, descriptor);
+
+        const obj = generateSchema(schema) as any;
+        if (obj.properties === undefined) {
+            return;
+        }
+
+        for (const property of Object.keys(obj.properties)) {
+            ApiQuery({
+                name: property,
+                ...obj.properties[property],
+                required: obj.required.includes(property),
+            })(target, propertyKey, descriptor);
+        }
     };
 }
 
