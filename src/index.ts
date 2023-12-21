@@ -77,7 +77,7 @@ export function ZQuery(schema: ZodSchema): MethodDecorator {
     };
 }
 
-export function ZParams(schema: ZodSchema): MethodDecorator {
+export function ZParam(schema: ZodSchema): MethodDecorator {
     return function (
         target: any,
         propertyKey: string | symbol,
