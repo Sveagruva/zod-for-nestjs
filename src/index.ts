@@ -9,6 +9,32 @@ import { ZodSchema } from "zod";
 import { ApiBody, ApiParam, ApiQuery, ApiResponse } from "@nestjs/swagger";
 import { generateSchema } from "@anatine/zod-openapi";
 
+const generateOpenAPISchema = (schema: ZodSchema) => {
+    const sch = generateSchema(schema);
+
+    if (sch.properties === undefined) {
+        return sch;
+    }
+
+    if(sch.required === undefined) {
+        sch.required = [];
+    }
+
+    for (const key of Object.keys(sch.properties)) {
+        if(sch.required.includes(key)) {
+            continue;
+        }
+
+        // @ts-ignore
+        const isZodOptional = schema.shape[key].isOptional() || schema.shape[key].isNullable();
+        if(!isZodOptional) {
+            sch.required.push(key);
+        }
+    }
+
+    return sch;
+}
+
 class ZodValidationPipe implements PipeTransform {
     constructor(
         private schema: ZodSchema,
@@ -49,7 +75,7 @@ export function ZBody(schema: ZodSchema): MethodDecorator {
         UsePipes(ZodValidationPipe.body(schema))(target, propertyKey, descriptor);
         ApiBody({
             // @ts-expect-error should be fine
-            schema: generateSchema(schema),
+            schema: generateOpenAPISchema(schema),
         })(target, propertyKey, descriptor);
     };
 }
@@ -62,7 +88,7 @@ export function ZQuery(schema: ZodSchema): MethodDecorator {
     ) {
         UsePipes(ZodValidationPipe.query(schema))(target, propertyKey, descriptor);
 
-        const obj = generateSchema(schema) as any;
+        const obj = generateOpenAPISchema(schema) as any;
         if (obj.properties === undefined) {
             return;
         }
@@ -85,7 +111,7 @@ export function ZParam(schema: ZodSchema): MethodDecorator {
     ) {
         UsePipes(ZodValidationPipe.param(schema))(target, propertyKey, descriptor);
 
-        const obj = generateSchema(schema) as any;
+        const obj = generateOpenAPISchema(schema) as any;
         if (obj.properties === undefined) {
             return;
         }
@@ -131,7 +157,7 @@ export function ZReturn(schema: ZodSchema, status = 200): MethodDecorator {
         ApiResponse({
             status: status,
             // @ts-expect-error should be fine
-            schema: generateSchema(schema),
+            schema: generateOpenAPISchema(schema),
         })(target, propertyKey, descriptor);
 
         return descriptor;
