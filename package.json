@@ -1,6 +1,6 @@
 {
 	"name": "zod-for-nestjs",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "use zod schemas for nestjs docs and validation",
 	"repository": "https://github.com/Sveagruva/zod-for-nestjs",
 	"main": "./dist/index.js",
