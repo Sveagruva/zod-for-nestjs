@@ -5,7 +5,7 @@ import {
     PipeTransform,
     UsePipes,
 } from "@nestjs/common";
-import { ZodSchema } from "zod";
+import { z, ZodSchema } from "zod";
 import { ApiBody, ApiParam, ApiQuery, ApiResponse } from "@nestjs/swagger";
 import { generateSchema } from "@anatine/zod-openapi";
 import { fromZodError } from "zod-validation-error";
@@ -35,6 +35,15 @@ const generateOpenAPISchema = (schema: ZodSchema) => {
 
     return sch;
 }
+
+const ValidationApiResponse = {
+    status: 400,
+    schema: generateOpenAPISchema(z.object({
+        error: z.string(),
+        message: z.string(),
+        statusCode: z.number(),
+    }))
+};
 
 class ZodValidationPipe implements PipeTransform {
     constructor(
@@ -75,6 +84,7 @@ export function ZBody(schema: ZodSchema): MethodDecorator {
         descriptor: PropertyDescriptor,
     ) {
         UsePipes(ZodValidationPipe.body(schema))(target, propertyKey, descriptor);
+        ApiResponse(ValidationApiResponse)(target, propertyKey, descriptor);
         ApiBody({
             // @ts-expect-error should be fine
             schema: generateOpenAPISchema(schema),
@@ -89,6 +99,7 @@ export function ZQuery(schema: ZodSchema): MethodDecorator {
         descriptor: PropertyDescriptor,
     ) {
         UsePipes(ZodValidationPipe.query(schema))(target, propertyKey, descriptor);
+        ApiResponse(ValidationApiResponse)(target, propertyKey, descriptor);
 
         const obj = generateOpenAPISchema(schema) as any;
         if (obj.properties === undefined) {
@@ -112,6 +123,7 @@ export function ZParam(schema: ZodSchema): MethodDecorator {
         descriptor: PropertyDescriptor,
     ) {
         UsePipes(ZodValidationPipe.param(schema))(target, propertyKey, descriptor);
+        ApiResponse(ValidationApiResponse)(target, propertyKey, descriptor);
 
         const obj = generateOpenAPISchema(schema) as any;
         if (obj.properties === undefined) {
