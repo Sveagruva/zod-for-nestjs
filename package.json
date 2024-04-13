@@ -2,7 +2,10 @@
 	"name": "zod-for-nestjs",
 	"version": "1.0.5",
 	"description": "use zod schemas for nestjs docs and validation",
-	"repository": "https://github.com/Sveagruva/zod-for-nestjs",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Sveagruva/zod-for-nestjs.git"
+	},
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
