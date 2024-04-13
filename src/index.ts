@@ -8,6 +8,7 @@ import {
 import { ZodSchema } from "zod";
 import { ApiBody, ApiParam, ApiQuery, ApiResponse } from "@nestjs/swagger";
 import { generateSchema } from "@anatine/zod-openapi";
+import { fromZodError } from "zod-validation-error";
 
 const generateOpenAPISchema = (schema: ZodSchema) => {
     const sch = generateSchema(schema);
@@ -60,8 +61,9 @@ class ZodValidationPipe implements PipeTransform {
 
         try {
             return this.schema.parse(value);
-        } catch (error) {
-            throw new BadRequestException("Validation failed");
+        } catch (error: any) {
+            const validationError = fromZodError(error);
+            throw new BadRequestException(validationError.toString());
         }
     }
 }
